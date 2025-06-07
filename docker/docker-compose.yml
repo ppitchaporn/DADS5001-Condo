@@ -1,0 +1,30 @@
+
+services:
+  mysql:
+    restart: on-failure
+    image: mysql:latest
+    container_name: Mysql_5001
+    environment:
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: dads5001db
+    volumes:
+      - ./volume/:/var/lib/mysql
+      - ./mysql/dads5001db.sql:/docker-entrypoint-initdb.d/dads5001db.sql
+    ports:
+      - '3306:3306'
+
+  mongodb:
+    restart: on-failure
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: dads5001db
+    volumes:
+        - ./volume_mdb:/data/db
+        - ./mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+    ports:
+      - '27017:27017'
