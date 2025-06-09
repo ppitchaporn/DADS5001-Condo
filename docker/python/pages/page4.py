@@ -5,21 +5,6 @@ import pydeck as pdk
 from sqlalchemy import create_engine
 import duckdb
 
-'''
-# Copy from page 3
-# --------------------------
-# 🔧 Setup
-# --------------------------
-df_columns = [
-    'rent_cd_price', 'rent_cd_bed', 'rent_cd_bath',
-    'rent_cd_features_time', 'rent_cd_features_station',
-    'star', 'starnum_list', 'near_rail_meter'
-]
-
-engine = create_engine("mysql+mysqlconnector://root:admin@localhost:3306/dads5001db")
-duck_con = duckdb.connect()
-'''
-
 # --------------------------
 # 🗺️ Page 4 - Map
 # --------------------------
