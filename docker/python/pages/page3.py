@@ -164,7 +164,7 @@ def page3():
 home_page = st.Page("page1.py", title="Home Page", icon=":material/home:")
 desc_page = st.Page("page2.py", title="Descriptive Analysis", icon=":material/database:")
 relation_page = st.Page(page3, title="Relationship Analysis & Prediction", icon=":material/bar_chart:")
-geo_page = st.Page("page4.py", title="Geospatial & Classification", icon=":material/map:")
+geo_page = st.Page("page4.py", title='Condo Map Insights & Classification', icon=":material/bar_chart:")
 ai_page = st.Page("page5.py", title="Advanced Search & Comparison", icon=":material/compare:")
 
 # Create menu
