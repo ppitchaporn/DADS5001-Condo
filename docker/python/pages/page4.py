@@ -1,174 +1,194 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 import pydeck as pdk
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.tree import DecisionTreeClassifier, plot_tree
 
-from sqlalchemy import create_engine
-import duckdb
-
-st.set_page_config(layout="wide")
 
 # --------------------------
-# 🗺️ Page 4 - Map
+# 🔧 Config
+# --------------------------
+st.set_page_config(page_title="Bangkok Condo Insights", layout="wide")
+
+# --------------------------
+# 🗺️ Page 4 - Map & Decision Tree Classification
 # --------------------------
 def page4():
-    st.title("🏙️ Bangkok Condo Map Insights")
-
+    st.title("🏙️ Bangkok Condo Map and Decision Tree Classifier")
+# --------------------------
+# 🔄 Load Data
+# --------------------------
     @st.cache_data
     def load_data():
-        url = "https://raw.githubusercontent.com/ppitchaporn/DADS5001-Condo/refs/heads/main/data_cleaned.csv"
+        url = 'https://raw.githubusercontent.com/ppitchaporn/DADS5001-Condo/refs/heads/main/data_cleaned.csv'
         df = pd.read_csv(url)
         df['rent_cd_price'] = df['rent_cd_price'].astype(str).str.replace(',', '', regex=False).astype(float)
         df.dropna(subset=['latitude', 'longitude'], inplace=True)
+        df = df[df['rent_cd_price'] <= 1000000] 
+        df['price_per_sqm'] = df['rent_cd_price'] / df['rent_cd_floorarea']
+        df['rate_type'] = df['rent_cd_price'].apply(lambda x: 0 if x < 10000 else (1 if x < 20000 else 2))
         return df
 
-    # Load and group data
     df = load_data()
-    grouped = (
-        df.groupby(['new_condo_name', 'latitude', 'longitude'], as_index=False)
-        .agg({
-            'rent_cd_price': ['min', 'max', 'mean'],
-            'rent_cd_bed': 'max',
-            'rent_cd_bath': 'max',
-            'rent_cd_floorarea': ['min', 'max', 'mean'],
-            'star': 'mean',
-            'near_rail_meter': 'min'
-        })
-    )
 
-    # Flatten columns
-    grouped.columns = ['Condo Name', 'Latitude', 'Longitude', 'Min Price', 'Max Price', 'Avg Price',
-                   'Bedrooms', 'Bathrooms', 'Min Area', 'Max Area', 'Avg Area', 'Avg Rating', 'MRT Distance']
-    
-    # Round Avg Price to int
-    #grouped['Avg Price'] = grouped['Avg Price'].round().astype(int)
-    grouped['Avg Area'] = grouped['Avg Area'].round()
-    grouped['Min Area'] = grouped['Min Area'].round()
-    grouped['Max Area'] = grouped['Max Area'].round()
+    tab1, tab2 = st.tabs(["🗺️ Condo Map Insights", "🌲 Decision Tree Structure"])
 
-    # Sidebar filters
-    st.markdown("#### 🔍 Filter Condos")
-    bedroom = st.selectbox("Number of Bedrooms", sorted(grouped['Bedrooms'].dropna().unique()))
-    bathroom = st.selectbox("Number of Bathrooms", sorted(grouped['Bathrooms'].dropna().unique()))
-        
-    st.markdown("#### 💰 Price Range (THB)")
-    min_price = st.number_input("Minimum Price", min_value=int(grouped['Min Price'].min()), value=10000, step=1000)
-    max_price = st.number_input("Maximum Price", min_value=int(min_price), max_value=int(grouped['Max Price'].max()), value=30000, step=1000)
 
-    st.markdown("#### 📐 Floor Area Range (m²)")
-    min_area = st.number_input("Minimum Area", min_value=int(grouped['Avg Area'].min()), value=25, step=5)
-    max_area = st.number_input("Maximum Area", min_value=int(min_area), max_value=int(grouped['Avg Area'].max()), value=80, step=5)
-
-    st.markdown("#### ⭐ Rating")
-    rating = st.slider("Minimum Rating", 3.50, 5.00, 4.00, step=0.1, format="%.1f")
-    
-    # Apply filters
-    filtered = grouped[
-        (grouped['Bedrooms'] == bedroom) &
-        (grouped['Bathrooms'] == bathroom) &
-        (grouped['Avg Price'] >= min_price) &
-        (grouped['Avg Price'] <= max_price) &
-        (grouped['Avg Rating'] >= rating) &
-        (grouped['Avg Area'] >= min_area) &
-        (grouped['Avg Area'] <= max_area)
-    ].copy()
-    
-    st.success(f"Found {len(filtered)} condos matching your filters.")
-
-    # Tooltip
-    filtered['tooltip'] = (
-        "🏢 " + filtered['Condo Name'] + "<br>" +
-        "💰 Avg Price: " + filtered['Avg Price'].astype(int).astype(str) + " THB<br>" +
-        "🛏️ Bed: " + filtered['Bedrooms'].astype(str) +
-        ", 🛁 Bath: " + filtered['Bathrooms'].astype(str) + "<br>" +
-        "⭐ Rating: " + filtered['Avg Rating'].round(1).astype(str) + "<br>" +
-        "🚆 MRT Distance: " + filtered['MRT Distance'].fillna(-1).apply(lambda x: f"{int(x)} m" if x >= 0 else "N/A")
-    )
-
-    # Icon column
-    filtered['icon_data'] = [{
-        "url": "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-        "width": 128,
-        "height": 128,
-        "anchorY": 128
-    }] * len(filtered)
-
-    # Map layer
-    layer = pdk.Layer(
-        "IconLayer",
-        data=filtered,
-        get_position='[Longitude, Latitude]',
-        get_icon='icon_data',
-        get_size=4,
-        size_scale=15,
-        pickable=True,
-        auto_highlight=True
-    )
-    view_state = pdk.ViewState(
-        latitude=13.75,
-        longitude=100.52,
-        zoom=11,
-        pitch=0
-    )
-    r = pdk.Deck(
-        layers=[layer],
-        initial_view_state=view_state,
-        map_style='mapbox://styles/mapbox/streets-v11',
-        tooltip={"html": "{tooltip}", "style": {"backgroundColor": "white", "color": "black"}}
-    )
-    st.pydeck_chart(r)
-
-    # Table of all results
-    if st.checkbox("Show condo data table"):
-        st.dataframe(
-            filtered[[
-                'Condo Name', 'Avg Price', 'Min Price', 'Max Price',
-                'Bedrooms', 'Bathrooms', 'Min Area', 'Max Area', 'Avg Rating', 'MRT Distance'
-            ]].rename(columns={
-                'Avg Price': 'Avg Price (THB)',
-                'Min Price': 'Min Price (THB)',
-                'Max Price': 'Max Price (THB)',
-                'Min Area' : 'Min Area',
-                'Max Area' : 'Max Area',
-                'Avg Rating': 'Rating',
-                'MRT Distance': 'Distance to MRT/BTS'
-            }),
-            use_container_width=True
+    # --------------------------
+    # Tab 1: Condo Map
+    # --------------------------
+    with tab1:
+        grouped = (
+            df.groupby(['new_condo_name', 'latitude', 'longitude'], as_index=False)
+            .agg({
+                'rent_cd_price': ['min', 'max', 'mean'],
+                'rent_cd_bed': 'max',
+                'rent_cd_bath': 'max',
+                'rent_cd_floorarea': ['min', 'max', 'mean'],
+                'star': 'mean',
+                'near_rail_meter': 'min'
+            })
         )
 
-    # Dropdown to specify condo name
-    # Filter for map display (using user inputs)
-    filtered_df = df[
-        (df['rent_cd_bed'] == bedroom) &
-        (df['rent_cd_price'] >= min_price) &
-        (df['rent_cd_price'] <= max_price) &
-        (df['star'] >= rating)
-    ].copy()
+        grouped.columns = ['Condo Name', 'Latitude', 'Longitude', 'Min Price', 'Max Price', 'Avg Price',
+                        'Bedrooms', 'Bathrooms', 'Min Area', 'Max Area', 'Avg Area', 'Avg Rating', 'MRT Distance']
+        grouped['Avg Area'] = grouped['Avg Area'].round()
+        grouped['Min Area'] = grouped['Min Area'].round()
+        grouped['Max Area'] = grouped['Max Area'].round()
 
-    # Create dropdown from unique condo names based on filter
-    condo_names = filtered_df['new_condo_name'].dropna().unique()
-    selected_condo = st.selectbox("📌 Select a Condo to View All Listings", condo_names)
-    
-    # Filter another df to show all listings based on filter
-    condo_details_df = filtered_df[filtered_df['new_condo_name'] == selected_condo]
+        st.markdown("#### 🔍 Filter Condos")
+        bedroom = st.selectbox("Number of Bedrooms", sorted(grouped['Bedrooms'].dropna().unique()))
+        bathroom = st.selectbox("Number of Bathrooms", sorted(grouped['Bathrooms'].dropna().unique()))
+        st.markdown("#### 💰 Price Range (THB)")
+        min_price = st.number_input("Minimum Price", value=10000, step=1000)
+        max_price = st.number_input("Maximum Price", value=30000, step=1000)
+        st.markdown("#### 📐 Floor Area Range (m²)")
+        min_area = st.number_input("Minimum Area", value=25, step=5)
+        max_area = st.number_input("Maximum Area", value=80, step=5)
+        st.markdown("#### ⭐ Rating")
+        rating = st.slider("Minimum Rating", 3.5, 5.0, 4.0, step=0.1)
 
-    # Display the details table for the selected condo
-    st.dataframe(
-        condo_details_df[[
-            'new_condo_name', 'rent_cd_price', 'rent_cd_bed', 'rent_cd_bath','rent_cd_floorarea', 'star', 'rent_cd_agent', 'rent_cd_tel'
+        filtered = grouped[
+            (grouped['Bedrooms'] == bedroom) &
+            (grouped['Bathrooms'] == bathroom) &
+            (grouped['Avg Price'] >= min_price) &
+            (grouped['Avg Price'] <= max_price) &
+            (grouped['Avg Rating'] >= rating) &
+            (grouped['Avg Area'] >= min_area) &
+            (grouped['Avg Area'] <= max_area)
+        ].copy()
+
+        st.success(f"Found {len(filtered)} condos matching your filters.")
+
+        filtered['tooltip'] = (
+            "🏢 " + filtered['Condo Name'] + "<br>" +
+            "💰 Avg Price: " + filtered['Avg Price'].astype(int).astype(str) + " THB<br>" +
+            "🛏️ Bed: " + filtered['Bedrooms'].astype(str) +
+            ", 🛁 Bath: " + filtered['Bathrooms'].astype(str) + "<br>" +
+            "⭐ Rating: " + filtered['Avg Rating'].round(1).astype(str) + "<br>" +
+            "🚆 MRT Distance: " + filtered['MRT Distance'].fillna(-1).apply(lambda x: f"{int(x)} m" if x >= 0 else "N/A")
+        )
+
+        filtered['icon_data'] = [{
+            "url": "https://cdn-icons-png.flaticon.com/512/684/684908.png",
+            "width": 128,
+            "height": 128,
+            "anchorY": 128
+        }] * len(filtered)
+
+        layer = pdk.Layer(
+            "IconLayer",
+            data=filtered,
+            get_position='[Longitude, Latitude]',
+            get_icon='icon_data',
+            get_size=4,
+            size_scale=15,
+            pickable=True,
+            auto_highlight=True
+        )
+        view_state = pdk.ViewState(latitude=13.75, longitude=100.52, zoom=11)
+        r = pdk.Deck(
+            layers=[layer],
+            initial_view_state=view_state,
+            map_style='mapbox://styles/mapbox/streets-v11',
+            tooltip={"html": "{tooltip}", "style": {"backgroundColor": "white", "color": "black"}}
+        )
+        st.pydeck_chart(r)
+
+        if st.checkbox("Show condo data table"):
+            st.dataframe(filtered, use_container_width=True)
+
+        filtered_df = df[
+            (df['rent_cd_bed'] == bedroom) &
+            (df['rent_cd_price'] >= min_price) &
+            (df['rent_cd_price'] <= max_price) &
+            (df['star'] >= rating)
+        ].copy()
+
+        selected_condo = st.selectbox("📌 Select a Condo to View All Listings", filtered_df['new_condo_name'].dropna().unique())
+        condo_details_df = filtered_df[filtered_df['new_condo_name'] == selected_condo]
+
+        st.dataframe(condo_details_df[[
+            'new_condo_name', 'rent_cd_price', 'rent_cd_bed', 'rent_cd_bath',
+            'rent_cd_floorarea', 'star', 'rent_cd_agent', 'rent_cd_tel'
         ]].rename(columns={
             'new_condo_name': 'Condo Name',
             'rent_cd_price': 'Price (THB)',
             'rent_cd_bed': 'Bedrooms',
             'rent_cd_bath': 'Bathrooms',
-            'rent_cd_floorarea':'Area',
+            'rent_cd_floorarea': 'Area',
             'star': 'Rating',
             'rent_cd_agent': 'Agent',
             'rent_cd_tel': 'Tel'
-        }), 
-        use_container_width=True
-    )
+        }), use_container_width=True)
 
-# Copy from page 3
+    # --------------------------
+    # Tab 2: Decision Tree
+    # --------------------------
+    with tab2:
+        st.subheader("Decision Tree Structure")
+
+        X = df.drop(columns=['rate_type'])
+        X = X.select_dtypes(include=['number'])  # Keep only numeric columns
+        y = df['rate_type']
+        X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=42)
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        param_grid = {
+            'max_depth': [3, 4, 5, 6],
+            'min_samples_leaf': [1, 5, 10],
+            'criterion': ['gini', 'entropy']
+        }
+
+        grid_search = GridSearchCV(DecisionTreeClassifier(random_state=42),
+                                param_grid=param_grid,
+                                cv=5, n_jobs=-1)
+        grid_search.fit(X_train_scaled, y_train)
+        model = grid_search.best_estimator_
+
+        tree_fig = plt.figure(figsize=(10, 8))
+        plot_tree(model, filled=True,
+                feature_names=X.columns.tolist(),
+                class_names=["Low", "Medium", "High"],
+                rounded=True,
+                fontsize=10,
+                max_depth=5)
+        plt.title("Decision Tree Classifier", fontsize=16, fontweight='bold')
+
+        st.markdown("""
+        **Class Definitions**  
+        - 🟧 **Low**: Rental price < 10,000 THB  
+        - 🟩 **Medium**: Rental price between 10,000–19,999 THB  
+        - 🟪 **High**: Rental price ≥ 20,000 THB  
+        
+        """)
+
+        st.pyplot(tree_fig)
+
 # --------------------------
 # 🧭 Navigation
 # --------------------------
