@@ -47,7 +47,7 @@ Ai_search = st.Page("page5.py", title=' Advanced Search & Comparison', icon=":ma
 ## create menu tree
 pg = st.navigation(
     {
-        "Menu": [home_page, descipt, relation_predict, geospatial_class, Ai_search],
+        "Menu": [home_page, descipt, relation_predict, geo_page, Ai_search],
 
     }
 )
