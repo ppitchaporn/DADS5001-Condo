@@ -122,7 +122,8 @@ def page4():
 
     grouped.columns = ['Condo Name', 'Latitude', 'Longitude', 'Min Price', 'Max Price', 'Avg Price',
                     'Bedrooms', 'Bathrooms', 'Min Area', 'Max Area', 'Avg Area', 'Avg Rating', 'MRT Distance']
-    
+
+    grouped['Avg Price'] = grouped['Avg Price'].round()
     grouped['Avg Area'] = grouped['Avg Area'].round()
     grouped['Min Area'] = grouped['Min Area'].round()
     grouped['Max Area'] = grouped['Max Area'].round()
