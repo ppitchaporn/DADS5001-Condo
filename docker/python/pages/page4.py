@@ -189,6 +189,52 @@ def page4():
 
         st.pyplot(tree_fig)
 
+        # --------------------------
+        # Classification Map (based on rate_type)
+        # --------------------------
+        st.markdown("### 🗺️ Condo Classification Map by Price Category")
+
+        # Assign colors by class
+        # 1. Define readable labels
+        rate_label_map = {
+            0: "Low",
+            1: "Medium",
+            2: "High"
+        }
+        df['rate_label'] = df['rate_type'].map(rate_label_map)
+
+        # 2. Assign colors based on text labels
+        color_map = {
+            "Low": [255, 165, 0],     # Orange
+            "Medium": [0, 200, 0],    # Green
+            "High": [128, 0, 128]     # Purple
+        }
+        df['color'] = df['rate_label'].map(color_map)
+
+                # Create PyDeck layer
+        classification_layer = pdk.Layer(
+            "ScatterplotLayer",
+            data=df,
+            get_position='[longitude, latitude]',
+            get_fill_color='color',
+            get_radius=60,
+            pickable=True,
+            opacity=0.8,
+        )
+
+        # View settings
+        view_state = pdk.ViewState(latitude=13.75, longitude=100.52, zoom=11)
+
+        # Display map
+        classification_map = pdk.Deck(
+            layers=[classification_layer],
+            initial_view_state=view_state,
+            tooltip={"text": "🏢 {new_condo_name}\n💰 Price: {rent_cd_price} THB\n🎯 Class: {rate_label}"}
+        )
+
+        st.pydeck_chart(classification_map)
+
+
 # --------------------------
 # 🧭 Navigation
 # --------------------------
