@@ -7,7 +7,7 @@ st.set_page_config(page_title="🚉 [BTS/MRT] Proximity vs Rent Price", layout="
 
 @st.cache_data
 def load_data():
-    return pd.read_csv("data_cleaned.csv")
+    return pd.read_csv('https://raw.githubusercontent.com/ppitchaporn/DADS5001-Condo/refs/heads/main/data_cleaned.csv')
 
 df_raw = load_data()
 
