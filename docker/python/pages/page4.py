@@ -14,7 +14,7 @@ def page4():
 
     @st.cache_data
     def load_data():
-        url = "https://raw.githubusercontent.com/PTUNTUK/DADS5001_Condo/main/Data%20Cleaned.csv"
+        url = "https://raw.githubusercontent.com/ppitchaporn/DADS5001-Condo/refs/heads/main/data_cleaned.csv"
         df = pd.read_csv(url)
         df['rent_cd_price'] = df['rent_cd_price'].astype(str).str.replace(',', '', regex=False).astype(float)
         df.dropna(subset=['latitude', 'longitude'], inplace=True)
@@ -41,15 +41,16 @@ def page4():
     grouped['Avg Price'] = grouped['Avg Price'].round().astype(int)
 
     # Sidebar filters
-    st.sidebar.header("🔍 Filter Condos")
-    bedroom = st.sidebar.selectbox("Number of Bedrooms", sorted(grouped['Bedrooms'].dropna().unique()))
-    bathroom = st.sidebar.selectbox("Number of Bathrooms", sorted(grouped['Bathrooms'].dropna().unique()))
+    st.markdown("#### 🔍 Filter Condos")
+    bedroom = st.selectbox("Number of Bedrooms", sorted(grouped['Bedrooms'].dropna().unique()))
+    bathroom = st.selectbox("Number of Bathrooms", sorted(grouped['Bathrooms'].dropna().unique()))
         
-    st.sidebar.markdown("#### 💰 Price Range (THB)")
-    min_price = st.sidebar.number_input("Minimum Price", min_value=int(grouped['Min Price'].min()), value=10000, step=1000)
-    max_price = st.sidebar.number_input("Maximum Price", min_value=int(min_price), max_value=int(grouped['Max Price'].max()), value=30000, step=1000)
+    st.markdown("#### 💰 Price Range (THB)")
+    min_price = st.number_input("Minimum Price", min_value=int(grouped['Min Price'].min()), value=10000, step=1000)
+    max_price = st.number_input("Maximum Price", min_value=int(min_price), max_value=int(grouped['Max Price'].max()), value=30000, step=1000)
     
-    rating = st.sidebar.slider("Minimum Rating", 3.50, 5.00, 4.00, step=0.1, format="%.1f")
+    st.markdown("#### ⭐ Rating")
+    rating = st.slider("Minimum Rating", 3.50, 5.00, 4.00, step=0.1, format="%.1f")
     
     # Apply filters
     filtered = grouped[
