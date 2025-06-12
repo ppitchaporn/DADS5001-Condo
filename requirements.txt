@@ -5,4 +5,3 @@ numpy>=1.23.0
 statsmodels>=0.13.0
 duckdb
 pymongo
-matplotlib.pyplot
