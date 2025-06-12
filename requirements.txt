@@ -6,3 +6,4 @@ statsmodels>=0.13.0
 duckdb
 pymongo
 matplotlib>=3.5.0
+scikit-learn>=1.2.0
