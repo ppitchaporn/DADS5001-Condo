@@ -17,7 +17,12 @@ df_columns = [
     'star', 'starnum_list', 'near_rail_meter'
 ]
 
-engine = create_engine("mysql+mysqlconnector://root:admin@localhost:3306/dads5001db")
+try:
+    engine = create_engine("mysql+mysqlconnector://root:admin@localhost:3306/dads5001db")
+    df = pd.read_sql('SELECT * FROM unclean_data', con=engine)
+except:
+    df = pd.read_csv('https://raw.githubusercontent.com/ppitchaporn/DADS5001-Condo/refs/heads/main/data_cleaned.csv')
+
 duck_con = duckdb.connect()
 
 # --------------------------
@@ -29,7 +34,7 @@ def page3():
     # -----------------------------------
     # 🔗 Load and show description
     # -----------------------------------
-    df = pd.read_sql('SELECT * FROM unclean_data', con=engine)
+
     duck_con.register('unclean_data', df)
     result = duck_con.execute("SELECT * FROM unclean_data").df()
 
@@ -113,9 +118,9 @@ def page3():
         # 🧠 Load model based on input
         # -----------------------------------
         if user_station is None:
-            model_path = r"D:\Nida\nida_term01_02\DADS5001\GIT_final\final2\python\model\random_forest_model_nostation.joblib"
+            model_path = r"model\random_forest_model_nostation.joblib"
         else:
-            model_path = r"D:\Nida\nida_term01_02\DADS5001\GIT_final\final2\python\model\random_forest_model.joblib"
+            model_path = r"model\random_forest_model.joblib"
 
         model = joblib.load(model_path)
 
@@ -132,10 +137,10 @@ def page3():
             filter_condos = filter_condos[filter_condos['rent_cd_features_station'] == user_station]
 
         if filter_condos.empty:
-            st.warning("⚠️ No exact match found within 100m. Relaxing the filter...")
+            st.warning("⚠️ No exact match found. Relaxing the filter...")
             filter_condos = result[
-                (result['rent_cd_bed'] == user_bed) &
-                (result['rent_cd_bath'] == user_bath)
+                (result['rent_cd_bed'] <= user_bed) &
+                (result['rent_cd_bath'] <= user_bath)
             ]
 
         # -----------------------------------
@@ -164,7 +169,7 @@ def page3():
 home_page = st.Page("page1.py", title="Home Page", icon=":material/home:")
 desc_page = st.Page("page2.py", title="Descriptive Analysis", icon=":material/database:")
 relation_page = st.Page(page3, title="Relationship Analysis & Prediction", icon=":material/bar_chart:")
-geo_page = st.Page("page4.py", title='Condo Map Insights & Classification', icon=":material/bar_chart:")
+geo_page = st.Page("page4.py", title="Geospatial & Classification", icon=":material/map:")
 ai_page = st.Page("page5.py", title="Advanced Search & Comparison", icon=":material/compare:")
 
 # Create menu
