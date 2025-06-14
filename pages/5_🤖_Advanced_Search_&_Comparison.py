@@ -1,6 +1,5 @@
 import streamlit as st
 # Call API key
-st.secrets["GROQ_API_KEY"]
 
 # MUST BE FIRST STREAMLIT COMMAND
 st.set_page_config(page_title="Advanced Search & Comparison", layout="wide")
