@@ -94,19 +94,20 @@ else:
     st.sidebar.caption(f"{mongo_info}")
 
 # === Main Welcome Content ===
-st.title("🏠 Welcome to Condo Rental Explorer")
+st.title("🌆 Welcome to Smart Rent BKK")
 
 st.markdown("""
 Explore condo rental prices in Bangkok using interactive analytics and AI tools.
 
 Use the menu on the left to navigate to:
 
-- 📊 Descriptive Analysis  
-- 📈 Relationship & Price Prediction  
-- 🗺 Geospatial Analysis  
+- 🏠 Home Page
+- 🚉 Descriptive Analysis
+- 📊 Relationship & Price Prediction
+- 🗺 Map & Price Classification
 - 🤖 Advanced Search & Comparison  
 """)
 
-st.image("https://cdn.pixabay.com/photo/2020/01/15/07/27/condominium-4769185_1280.jpg", use_container_width=True)
+#st.image("https://cdn.pixabay.com/photo/2020/01/15/07/27/condominium-4769185_1280.jpg", use_container_width=True)
 
 st.caption("Built with ❤️ using Streamlit, Plotly, DuckDB & MongoDB")
