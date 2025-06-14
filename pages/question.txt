@@ -1,0 +1,44 @@
+# 🔹 General Price Questions
+Which condo has the highest price?
+List the top 5 cheapest condos.
+What is the average condo price in this dataset?
+Which projects have a price above 10 million THB?
+
+# 🔹 Room Count Filters
+Show all condos with at least 2 bedrooms and 2 bathrooms.
+Which condo has the most bedrooms?
+How many condos have 3 or more bathrooms?
+
+# 🔹 Location & Accessibility
+Which condo is closest to a BTS station?
+List condos within 500 meters of a train station.
+What are the most common nearby stations?
+Which condos are near Siam or Asoke station?
+
+# 🔹 Project & Listing Details
+List all unique condo project names.
+Which project has the most listings?
+Show condos under the project “Ideo Q Chula-Samyan”.
+
+# 🔹 Review & Rating Insights
+Which condo has the highest review star rating?
+How many condos have more than 4 stars?
+List condos with at least 100 reviews.
+
+# 🔹 Agent Information
+Which agent has the most listings?
+Show all condos listed by agent named “Siri Estate”.
+
+# 🔹 Thai Language Test (if supported)
+คอนโดไหนราคาแพงที่สุด
+มีคอนโดใกล้ BTS ภายใน 300 เมตรหรือไม่
+มีคอนโดกี่แห่งที่มีรีวิวเกิน 4 ดาว
+ราคาคอนโดเฉลี่ยทั้งหมดเท่าไหร่
+มีโครงการอะไรบ้างใน dataset นี้
+คอนโดที่มีห้องนอน 3 ห้องมีที่ไหนบ้าง
+
+# 🔹 Advanced Analytical Questions
+Which stations are most frequently mentioned across all condos?
+What is the average price per bedroom?
+Which area has the highest concentration of condos?
+Compare average prices between condos near MRT vs BTS stations.
