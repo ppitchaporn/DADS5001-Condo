@@ -72,3 +72,4 @@ pymongo
 plotly
 matplotlib
 joblib
+scikit-learn
