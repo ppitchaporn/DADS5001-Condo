@@ -68,3 +68,4 @@ statsmodels>=0.13.0
 tabulate
 sqlalchemy
 duckdb
+pymongo
