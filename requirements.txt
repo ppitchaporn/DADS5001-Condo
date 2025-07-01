@@ -69,3 +69,4 @@ tabulate
 sqlalchemy
 duckdb
 pymongo
+plotly
