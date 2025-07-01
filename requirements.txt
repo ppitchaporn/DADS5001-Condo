@@ -74,3 +74,4 @@ matplotlib
 joblib
 scikit-learn
 scipy
+statsmodels
