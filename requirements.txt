@@ -73,4 +73,3 @@ plotly
 matplotlib
 joblib
 scikit-learn
-scipy
