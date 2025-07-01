@@ -70,3 +70,4 @@ sqlalchemy
 duckdb
 pymongo
 plotly
+matplotlib
